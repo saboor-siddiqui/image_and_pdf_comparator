@@ -1,0 +1,17 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparison Result</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+</head>
+<body>
+    <div class="container">
+        <h1>Comparison Result</h1>
+        <img src="data:image/png;base64,{{ output_image.getvalue() | b64encode }}" alt="Comparison Result">
+        <br><br>
+        <a href="/" class="btn">Compare Another Pair of Images</a>
+    </div>
+</body>
+</html>

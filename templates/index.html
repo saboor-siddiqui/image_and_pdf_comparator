@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Image Comparison</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .form-container { display: none; }
+        .comparison-options { margin-bottom: 20px; }
+        .btn { margin: 5px; }
+        .preview-container {
+            display: flex;
+            gap: 20px;
+            margin: 20px 0;
+        }
+        .preview-box {
+            flex: 1;
+            border: 2px dashed #ccc;
+            padding: 10px;
+            text-align: center;
+            position: relative;
+        }
+        .preview-image {
+            max-width: 100%;
+            max-height: 200px;
+            display: none;
+        }
+        .upload-prompt {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 100%;
+            color: #666;
+            font-size: 0.9em;
+            pointer-events: none;
+            opacity: 0.7;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="comparison-options">
+            <h1>Select Comparison Type</h1>
+            <button class="btn btn-primary" onclick="showForm('single-comparison')">Image to Image Comparison</button>
+            <button class="btn btn-primary" onclick="showForm('multiple-comparison')">Reference Image Comparison</button>
+            <button class="btn btn-primary" onclick="showForm('html-to-image')">HTML to Image Conversion</button>
+        </div>
+
+        <div id="forms-container">
+            <div id="single-comparison" class="form-container">
+                <h2>Image to Image Comparison</h2>
+                <form id="single-form" action="/" method="post" enctype="multipart/form-data">
+                    <div class="preview-container">
+                        <div class="preview-box">
+                            <label for="file1">Image 1</label>
+                            <div class="upload-prompt">Drag & Drop here or click to upload</div>
+                            <input type="file" name="file1" id="file1" accept="image/*,.html" required>
+                            <div class="file-info" id="info1"></div>
+                            <img id="preview1" class="preview-image" alt="Preview 1">
+                        </div>
+                        <div class="preview-box">
+                            <label for="file2">Image 2</label>
+                            <div class="upload-prompt">Drag & Drop here or click to upload</div>
+                            <input type="file" name="file2" id="file2" accept="image/*,.html" required>
+                            <div class="file-info" id="info2"></div>
+                            <img id="preview2" class="preview-image" alt="Preview 2">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Compare</button>
+                </form>
+            </div>
+
+            <div id="multiple-comparison" class="form-container">
+                <h2>Reference Image Comparison</h2>
+                <form action="/compare_multiple" method="post" enctype="multipart/form-data">
+                    <div class="preview-container">
+                        <div class="preview-box">
+                            <label for="master_file">Reference Image</label>
+                            <div class="upload-prompt">Drag & Drop here or click to upload</div>
+                            <input type="file" name="master_file" id="master_file" accept="image/*,.html" required>
+                            <div class="file-info" id="info-master"></div>
+                            <img id="preview-master" class="preview-image" alt="Reference Image Preview">
+                        </div>
+                        <div class="preview-box">
+                            <label for="child_files">Compare with Images</label>
+                            <div class="upload-prompt">Drag & Drop files here or click to upload</div>
+                            <input type="file" name="child_files" id="child_files" accept="image/*,.html" multiple required>
+                            <div class="file-info" id="info-child"></div>
+                        </div>
+                    </div>
+                    <button type="submit" class="btn">Compare Multiple</button>
+                </form>
+            </div>
+
+            <div id="html-to-image" class="form-container">
+                <h2>HTML to Image Conversion</h2>
+                <form action="/convert_html" method="post" enctype="multipart/form-data">
+                    <div class="preview-box">
+                        <label for="html_file">HTML File</label>
+                        <div class="upload-prompt">Drag & Drop HTML file here or click to upload</div>
+                        <input type="file" name="html_file" id="html_file" accept=".html,text/html" required>
+                        <div class="file-info" id="info-html"></div>
+                    </div>
+                    <button type="submit" class="btn">Convert</button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            // Initialize all file upload containers
+            initializeFileUpload('single-comparison');
+            initializeFileUpload('multiple-comparison');
+            initializeFileUpload('html-to-image');
+
+            // Enhanced form switch animation
+            function showForm(formId) {
+                const forms = document.querySelectorAll('.form-container');
+                forms.forEach(form => {
+                    form.classList.remove('show');
+                    setTimeout(() => form.style.display = 'none', 300);
+                });
+
+                const selectedForm = document.getElementById(formId);
+                setTimeout(() => {
+                    selectedForm.style.display = 'block';
+                    setTimeout(() => selectedForm.classList.add('show'), 50);
+                }, 300);
+            }
+        });
+    </script>
+</body>
+</html>

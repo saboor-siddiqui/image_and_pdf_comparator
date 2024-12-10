@@ -1,6 +1,8 @@
+Flask
 Pillow
 numpy
 scikit-image
 matplotlib
-jupyter
-jupyterlab
+opencv-python
+pytesseract
+imgkit

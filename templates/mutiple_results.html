@@ -1,0 +1,53 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Comparison Results</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <style>
+        .comparison-card {
+            border: 1px solid #ddd;
+            padding: 20px;
+            margin: 20px 0;
+            border-radius: 5px;
+        }
+        .similarity-high { color: green; }
+        .similarity-medium { color: orange; }
+        .similarity-low { color: red; }
+        .difference-area {
+            margin: 5px 0;
+            font-size: 0.9em;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Comparison Results</h1>
+        <h2>Reference Image: {{ parent_image }}</h2>
+        
+        {% for result in results.values() %}
+            <div class="comparison-card">
+                <h3>{{ result.child_image_name }}</h3>
+                <p>Status: <strong>{{ result.comparison_status }}</strong></p>
+                <p class="similarity-{{ 'high' if result.similarity_percentage >= 95 else 'medium' if result.similarity_percentage >= 80 else 'low' }}">
+                    Similarity: {{ "%.2f"|format(result.similarity_percentage) }}%
+                </p>
+                
+                {% if result.difference_areas %}
+                    <h4>Differences Found:</h4>
+                    {% for diff in result.difference_areas %}
+                        <div class="difference-area">
+                            Area {{ loop.index }}: {{ "%.1f"|format(diff.difference_percentage) }}% different
+                        </div>
+                    {% endfor %}
+                {% endif %}
+                
+                <img src="data:image/png;base64,{{ result.output_image.getvalue() | b64encode }}" alt="Comparison Result" title="Comparison visualization">
+            </div>
+        {% endfor %}
+        
+        <a href="/" class="btn">Compare More Images</a>
+    </div>
+</body>
+</html>
