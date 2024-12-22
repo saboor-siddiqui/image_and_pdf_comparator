@@ -147,5 +147,5 @@ function showForm(formId) {
 document.addEventListener('DOMContentLoaded', () => {
     initializeFileUpload('single-comparison');
     initializeFileUpload('multiple-comparison');
-    initializeFileUpload('html-to-image');
+    initializeFileUpload('html-comparison');
 });

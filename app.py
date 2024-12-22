@@ -5,7 +5,7 @@ import os
 import numpy as np
 import base64
 from image_comparator import ImageComparator
-from multiple_image_comparator import MultipleImageComparator
+from file_processor import FileProcessor
 
 app = Flask(__name__)
 app.config['UPLOAD_FOLDER'] = 'static/uploads'
@@ -21,102 +21,67 @@ def b64encode_filter(data):
 
 # Create instances of both comparators with upload folder
 single_comparator = ImageComparator(app.config['UPLOAD_FOLDER'])
-multiple_comparator = MultipleImageComparator(app.config['UPLOAD_FOLDER'])
+file_processor = FileProcessor(app.config['UPLOAD_FOLDER'])
 
 @app.route('/', methods=['GET', 'POST'])
 def upload_file():
     if request.method == 'POST':
         try:
-            # Get files from request
-            file1 = request.files['file1']
-            file2 = request.files['file2']
+            # Handle image comparison
+            if 'file1' in request.files and 'file2' in request.files:
+                file1 = request.files['file1']
+                file2 = request.files['file2']
+                
+                file1_path = os.path.join(app.config['UPLOAD_FOLDER'], file1.filename)
+                file2_path = os.path.join(app.config['UPLOAD_FOLDER'], file2.filename)
+                
+                file1.save(file1_path)
+                file2.save(file2_path)
+                
+                # Process files to ensure they are images
+                image1_path = file_processor.process_file(file1_path)
+                image2_path = file_processor.process_file(file2_path)
+                
+                comparison_result_image = single_comparator.compare_images(image1_path, image2_path)
+                
+                # Read the comparison result image and convert to base64
+                with open(comparison_result_image, "rb") as image_file:
+                    output_image = base64.b64encode(image_file.read()).decode('utf-8')
+                
+                return render_template('result.html', output_image=output_image)
             
-            # Read files into memory using PIL
-            image1 = Image.open(BytesIO(file1.read()))
-            image2 = Image.open(BytesIO(file2.read()))
+            # Handle HTML comparison
+            elif 'html_file1' in request.files and 'html_file2' in request.files:
+                html_file1 = request.files['html_file1']
+                html_file2 = request.files['html_file2']
+                
+                html_path1 = os.path.join(app.config['UPLOAD_FOLDER'], html_file1.filename)
+                html_path2 = os.path.join(app.config['UPLOAD_FOLDER'], html_file2.filename)
+                
+                html_file1.save(html_path1)
+                html_file2.save(html_path2)
+                
+                image_path1 = file_processor.convert_html_to_image(html_path1)
+                image_path2 = file_processor.convert_html_to_image(html_path2)
+                
+                comparison_result_image = single_comparator.compare_images(image_path1, image_path2)
+                
+                # Read the comparison result image and convert to base64
+                with open(comparison_result_image, "rb") as image_file:
+                    output_image = base64.b64encode(image_file.read()).decode('utf-8')
+                
+                return render_template('result.html', output_image=output_image)
             
-            # Convert to RGB mode if necessary
-            if image1.mode != 'RGB':
-                image1 = image1.convert('RGB')
-            if image2.mode != 'RGB':
-                image2 = image2.convert('RGB')
-            
-            # Convert to numpy arrays
-            image1_np = np.array(image1)
-            image2_np = np.array(image2)
-            
-            # Compare images and get result
-            output_image = single_comparator.compare_images_in_memory(image1_np, image2_np)
-            
-            # Convert output image to bytes for display
-            output_buffer = BytesIO()
-            Image.fromarray(output_image).save(output_buffer, format='PNG')
-            output_buffer.seek(0)
-            
-            # Return result template with image data
-            return render_template('result.html', output_image=output_buffer)
-            
+            else:
+                flash("Please upload the required files.")
+                return redirect(request.url)
+        
         except Exception as e:
             flash(str(e))
-            print(f"Error during comparison: {str(e)}")  # Debug logging
+            print(f"Error during comparison: {str(e)}")
             return redirect(request.url)
             
     return render_template('index.html')
-
-@app.route('/compare_multiple', methods=['POST'])
-def compare_multiple():
-    try:
-        # Use multiple image comparator
-        parent_file = request.files['master_file']
-        child_files = request.files.getlist('child_files')
-        
-        if len(child_files) < 5:
-            flash("Please select at least 5 files to compare")
-            return redirect(request.url)
-            
-        # Read parent file into memory
-        parent_image = Image.open(BytesIO(parent_file.read()))
-        parent_image_np = np.array(parent_image)
-        
-        child_images = []
-        for child_file in child_files:
-            # Read child files into memory
-            child_image = Image.open(BytesIO(child_file.read()))
-            child_image_np = np.array(child_image)
-            child_images.append(child_image_np)
-        
-        results = multiple_comparator.compare_multiple(parent_image_np, child_images)
-        
-        # Convert output images to in-memory files
-        output_buffers = []
-        for result in results.values():
-            output_buffer = BytesIO()
-            result.output_image.save(output_buffer, format='PNG')
-            output_buffer.seek(0)
-            output_buffers.append(output_buffer)
-        
-        return render_template('multiple_results.html', results=results, parent_image=parent_file.filename)
-                             
-    except Exception as e:
-        flash(str(e))
-        print(f"Error during multiple comparison: {str(e)}")
-        return redirect(request.url)
-
-@app.route('/convert_html', methods=['POST'])
-def convert_html():
-    try:
-        html_file = request.files['html_file']
-        html_file_path = BytesIO(html_file.read())
-
-        output_image_path = BytesIO()
-        single_comparator.html_to_image(html_file_path, output_image_path)
-        output_image_path.seek(0)
-
-        return render_template('result.html', output_image=output_image_path)
-    except Exception as e:
-        flash(str(e))
-        print(f"Error during HTML conversion: {str(e)}")
-        return redirect(request.url)
 
 if __name__ == '__main__':
     app.run(debug=True)

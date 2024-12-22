@@ -41,9 +41,13 @@ class ImageComparator:
 
         output_filename = 'output.png'
         output_path = os.path.join(self.upload_folder, output_filename)
+        
+        # Ensure the directory exists
+        os.makedirs(self.upload_folder, exist_ok=True)
+        
         cv2.imwrite(output_path, outlined_img)
 
-        return output_filename
+        return output_path
 
     def compare_images_in_memory(self, img1_np, img2_np):
         """Compare two images using numpy arrays directly."""

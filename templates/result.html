@@ -9,9 +9,9 @@
 <body>
     <div class="container">
         <h1>Comparison Result</h1>
-        <img src="data:image/png;base64,{{ output_image.getvalue() | b64encode }}" alt="Comparison Result">
+        <img src="data:image/png;base64,{{ output_image }}" alt="Comparison Result">
         <br><br>
-        <a href="/" class="btn">Compare Another Pair of Images</a>
+        <a href="/" class="btn">Compare Another Pair of Files</a>
     </div>
 </body>
 </html>
