@@ -36,6 +36,40 @@
             pointer-events: none;
             opacity: 0.7;
         }
+        .loading-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.5);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+        .loading-bar {
+            width: 300px;
+            height: 20px;
+            background: #e9ecef;
+            border-radius: 10px;
+            overflow: hidden;
+            position: relative;
+        }
+        .loading-bar .progress {
+            width: 0;
+            height: 100%;
+            background: #007bff;
+            transition: width 0.3s ease;
+        }
+        .loading-bar .percentage {
+            position: absolute;
+            top: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            color: #fff;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -49,7 +83,7 @@
         <div id="forms-container">
             <div id="single-comparison" class="form-container">
                 <h2>Image to Image Comparison</h2>
-                <form id="single-form" action="/" method="post" enctype="multipart/form-data">
+                <form id="single-form" action="/" method="post" enctype="multipart/form-data" onsubmit="showLoadingOverlay()">
                     <div class="preview-container">
                         <div class="preview-box">
                             <label for="file1">Image 1</label>
@@ -72,7 +106,7 @@
 
             <div id="html-comparison" class="form-container">
                 <h2>HTML to HTML Comparison</h2>
-                <form action="/" method="post" enctype="multipart/form-data">
+                <form action="/" method="post" enctype="multipart/form-data" onsubmit="showLoadingOverlay()">
                     <div class="preview-container">
                         <div class="preview-box">
                             <label for="html_file1">HTML File 1</label>
@@ -89,6 +123,13 @@
                     </div>
                     <button type="submit" class="btn">Compare HTML Files</button>
                 </form>
+            </div>
+        </div>
+
+        <div class="loading-overlay" id="loading-overlay">
+            <div class="loading-bar">
+                <div class="progress" id="progress"></div>
+                <div class="percentage" id="percentage">0%</</div>
             </div>
         </div>
     </div>
@@ -115,6 +156,26 @@
                 }, 300);
             }
         });
+
+        function showLoadingOverlay() {
+            const loadingOverlay = document.getElementById('loading-overlay');
+            const progress = document.getElementById('progress');
+            const percentage = document.getElementById('percentage');
+            loadingOverlay.style.display = 'flex';
+            progress.style.width = '0';
+            percentage.textContent = '0%';
+
+            let width = 0;
+            const interval = setInterval(() => {
+                if (width >= 100) {
+                    clearInterval(interval);
+                } else {
+                    width += 1;
+                    progress.style.width = width + '%';
+                    percentage.textContent = width + '%';
+                }
+            }, 100);
+        }
     </script>
 </body>
 </html>

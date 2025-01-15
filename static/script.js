@@ -146,6 +146,25 @@ function showForm(formId) {
 // Initialize forms when DOM is loaded
 document.addEventListener('DOMContentLoaded', () => {
     initializeFileUpload('single-comparison');
-    initializeFileUpload('multiple-comparison');
     initializeFileUpload('html-comparison');
 });
+
+function showLoadingOverlay() {
+    const loadingOverlay = document.getElementById('loading-overlay');
+    const progress = document.getElementById('progress');
+    const percentage = document.getElementById('percentage');
+    loadingOverlay.style.display = 'flex';
+    progress.style.width = '0';
+    percentage.textContent = '0%';
+
+    let width = 0;
+    const interval = setInterval(() => {
+        if (width >= 100) {
+            clearInterval(interval);
+        } else {
+            width += 1;
+            progress.style.width = width + '%';
+            percentage.textContent = width + '%';
+        }
+    }, 100);
+}
