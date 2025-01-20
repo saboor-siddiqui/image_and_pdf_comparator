@@ -1,8 +1,7 @@
 import os
-import mimetypes
-from pathlib import Path
-from weasyprint import HTML
 import magic
+from pathlib import Path
+from playwright.sync_api import sync_playwright
 
 class FileProcessor:
     def __init__(self, upload_folder: str):
@@ -15,11 +14,24 @@ class FileProcessor:
         return file_type
         
     def convert_html_to_image(self, html_path: str, output_format: str = 'png') -> str:
-        """Convert HTML file to image using WeasyPrint."""
+        """Convert HTML file to image using Playwright."""
+        # Get absolute paths
+        abs_html_path = os.path.abspath(html_path)
         output_filename = f"{Path(html_path).stem}_converted.{output_format}"
-        output_path = os.path.join(self.upload_folder, output_filename)
+        output_path = os.path.abspath(os.path.join(self.upload_folder, output_filename))
         
-        HTML(html_path).write_png(output_path) if output_format == 'png' else HTML(html_path).write_jpeg(output_path)
+        # Ensure output directory exists
+        os.makedirs(os.path.dirname(output_path), exist_ok=True)
+        
+        with sync_playwright() as p:
+            browser = p.chromium.launch()
+            page = browser.new_page()
+            # Use file:/// protocol with absolute path
+            page.goto(f'file:///{abs_html_path.replace("\\", "/")}')
+            # Set viewport size to capture full content
+            page.set_viewport_size({"width": 1280, "height": 720})
+            page.screenshot(path=output_path, full_page=True)
+            browser.close()
         
         return output_path
     
